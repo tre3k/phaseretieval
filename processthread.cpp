@@ -8,7 +8,8 @@ void ProcessThread::run(){
 
     tComplex2D P(dp->inputData->getSizeX(),dp->inputData->getSizeY());
 
-    generateProbeSquare(&P,0.5,0.5,0.5,0.5);
+    //generateProbeSquare(&P,0.5,0.5,0.5,0.5);
+    generateProbeCircle(&P,0.50,0.5,0.5);
     //generateProbeSquare(&P,0.390625,0.390625,0.390625,0.390625);
     error_reduction(dp->inputData,&P,dp->n_itteration);
 }
@@ -37,7 +38,7 @@ tComplex2D ProcessThread::error_reduction(tComplex2D *F,tComplex2D *P,int n_itte
         // direct FFT
         fft.dfft2d(&x,&X);
 
-        if((k+1)%200==0){
+        if((k+1)%50==0){
             emit signal_plotResult(&x);
             emit signal_plotAmpl(&X);
             emit signal_plotPhase(&X);
@@ -54,7 +55,7 @@ tComplex2D ProcessThread::error_reduction(tComplex2D *F,tComplex2D *P,int n_itte
 
         // inverse FFT
         fft.ifft2d(&X,&xest);
-        //xest.cleanImgn();          // keepout only the real space
+        xest.cleanImgn();          // keepout only the real space
 
         // constrains
 
@@ -137,8 +138,6 @@ void ProcessThread::generateProbeCircle(tComplex2D *data,double r,double x,doubl
     r *= minSize;
     x *= minSize;
     y *= minSize;
-
-    qDebug () << r << " " << x << " " << y;
 
     for(i=doubleToInt(x-r);i<doubleToInt(x+r);i++){
         for(j=doubleToInt(y-r);j<doubleToInt(y+r);j++){
