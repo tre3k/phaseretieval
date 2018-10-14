@@ -44,3 +44,12 @@ void tComplex2D::clone(tComplex2D value){
         }
     }
 }
+
+void tComplex2D::cleanImgn(){
+    for(int i=0;i<SizeX;i++){
+        for(int j=0;j<SizeY;j++){
+            this->data[i][j].setImgn(0.0);
+        }
+    }
+    return;
+}

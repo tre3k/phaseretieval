@@ -4,9 +4,17 @@ tFFT::tFFT(){
 
 }
 
-void tFFT::simplefft(double *real,double *imgn,int n){
+void tFFT::simplefft(double *real,double *imgn,int n,bool direct){
     int step,start,old_start,i,j,theta=0;
     double tmpReal,tmpImgn;
+    double coeff = 1.0/n;
+    double cphase = -1.0;
+
+    if(!direct){
+        coeff = 1;
+        cphase *= -1.0;
+    }
+
 
     /******** Reverse bits *****/
     int b=0,l,k,bits=log(n)/log(2);
@@ -37,17 +45,17 @@ void tFFT::simplefft(double *real,double *imgn,int n){
                 j=i+step;
                 /* a-bc */
 
-                tmpReal = real[i]-(real[j]*cos(-theta*2*M_PI/(step<<1))-
-                                   imgn[j]*sin(-theta*2*M_PI/(step<<1)));
-                tmpImgn = imgn[i]-(real[j]*sin(-theta*2*M_PI/(step<<1))+
-                                   imgn[j]*cos(-theta*2*M_PI/(step<<1)));
+                tmpReal = real[i]-(real[j]*cos(cphase*theta*2*M_PI/(step<<1))-
+                                   imgn[j]*sin(cphase*theta*2*M_PI/(step<<1)));
+                tmpImgn = imgn[i]-(real[j]*sin(cphase*theta*2*M_PI/(step<<1))+
+                                   imgn[j]*cos(cphase*theta*2*M_PI/(step<<1)));
 
                 /* a+bc */
 
-                real[i] = real[i]+(real[j]*cos(-theta*2*M_PI/(step<<1))-
-                                   imgn[j]*sin(-theta*2*M_PI/(step<<1)));
-                imgn[i] = imgn[i]+(real[j]*sin(-theta*2*M_PI/(step<<1))+
-                                   imgn[j]*cos(-theta*2*M_PI/(step<<1)));
+                real[i] = real[i]+(real[j]*cos(cphase*theta*2*M_PI/(step<<1))-
+                                   imgn[j]*sin(cphase*theta*2*M_PI/(step<<1)));
+                imgn[i] = imgn[i]+(real[j]*sin(cphase*theta*2*M_PI/(step<<1))+
+                                   imgn[j]*cos(cphase*theta*2*M_PI/(step<<1)));
 
                 real[j] = tmpReal;
                 imgn[j] = tmpImgn;
@@ -58,11 +66,15 @@ void tFFT::simplefft(double *real,double *imgn,int n){
             old_start = start;
         }
     }
+    for(int i=0;i<n;i++){
+        real[i] *= coeff;
+        imgn[i] *= coeff;
+    }
 }
 
 
 /* Fast furje transform */
-void tFFT::fft2d(tComplex2D *input,tComplex2D *output, double conjugation){
+void tFFT::fft2d(tComplex2D *input,tComplex2D *output, bool direct){
     int N = input->getSizeX();
     int M = input->getSizeY();
 
@@ -78,9 +90,9 @@ void tFFT::fft2d(tComplex2D *input,tComplex2D *output, double conjugation){
     for(int j=0;j<M;j++){
         for(int i=0;i<N;i++){
             tmp_real[i] = input->data[i][j].getReal();
-            tmp_imgn[i] = conjugation*input->data[i][j].getImgn();
+            tmp_imgn[i] = input->data[i][j].getImgn();
         }
-        simplefft(tmp_real,tmp_imgn,N);
+        simplefft(tmp_real,tmp_imgn,N,direct);
         for(int i=0;i<N;i++){
             output->data[i][j].setReal(tmp_real[i]);
             output->data[i][j].setImgn(tmp_imgn[i]);
@@ -99,7 +111,7 @@ void tFFT::fft2d(tComplex2D *input,tComplex2D *output, double conjugation){
             tmp_real[j] = output->data[i][j].getReal();
             tmp_imgn[j] = output->data[i][j].getImgn();
         }
-        simplefft(tmp_real,tmp_imgn,M);
+        simplefft(tmp_real,tmp_imgn,M,direct);
         for(int j=0;j<M;j++){
             output->data[i][j].setReal(tmp_real[j]);
             output->data[i][j].setImgn(tmp_imgn[j]);
@@ -114,12 +126,12 @@ void tFFT::fft2d(tComplex2D *input,tComplex2D *output, double conjugation){
 
 /* direct transform */
 void tFFT::dfft2d(tComplex2D *input,tComplex2D *output){
-    fft2d(input,output,1.0);
+    fft2d(input,output,true);
 }
 
 /* inverse transform */
 void tFFT::ifft2d(tComplex2D *input,tComplex2D *output){
-    fft2d(input,output,-1.0);
+    fft2d(input,output,false);
 }
 
 

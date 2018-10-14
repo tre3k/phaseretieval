@@ -6,7 +6,11 @@ ProcessThread::ProcessThread(QObject *parent) : QThread(parent){
 
 void ProcessThread::run(){
 
+    tComplex2D P(dp->inputData->getSizeX(),dp->inputData->getSizeY());
 
+    //generateProbeSquare(&P,0.5,0.5,0.4,0.4);
+    generateProbeSquare(&P,0.390625,0.390625,0.390625,0.390625);
+    error_reduction(dp->inputData,&P,dp->n_itteration);
 }
 
 void ProcessThread::slot_recive_data_process(s_data_process *lpd){
@@ -15,11 +19,135 @@ void ProcessThread::slot_recive_data_process(s_data_process *lpd){
 }
 
 
-tComplex2D ProcessThread::error_reduction(tComplex2D F,int n_itteration){
-    tComplex2D x,xest,X;
-    X.clone(F);
+tComplex2D ProcessThread::error_reduction(tComplex2D *F,tComplex2D *P,int n_itteration){
+    tComplex2D x,xest,X(F->getSizeX(),F->getSizeY());
+    tFFT fft;
+
+    double Serr1,Serr2,Err;
+
+    Serr2 = 0.0;
+
+    for(int i=0;i<X.getSizeX();i++){
+        for(int j=0;j<X.getSizeY();j++){
+            X.data[i][j].setAmplAndPhse(F->data[i][j].getAmpl(),2*M_PI*(rand()%100-50)/100);
+            Serr2 += F->data[i][j].getAmpl()*F->data[i][j].getAmpl();
+        }
+    }
+
+    fft.ifft2d(&X,&x);
+    x.cleanImgn();
+
+    for(int k=0;k<n_itteration;k++){
+        // direct FFT
+        fft.dfft2d(&x,&X);
+
+        Serr1 = 0.0;
+        for(int i=0;i<X.getSizeX();i++){
+            for(int j=0;j<X.getSizeY();j++){
+                Serr1 += (X.data[i][j].getAmpl()-F->data[i][j].getAmpl())*
+                         (X.data[i][j].getAmpl()-F->data[i][j].getAmpl());
+            }
+
+        }
+
+        // replace Amplitude
+        for(int i=0;i<X.getSizeX();i++){
+            for(int j=0;j<X.getSizeY();j++){
+                X.data[i][j].setAmpl(F->data[i][j].getAmpl());
+            }
+        }
+
+        // inverse FFT
+        fft.ifft2d(&X,&xest);
+        //xest.cleanImgn();          // keepout only the real space
+
+        // constrains
+
+        for(int i=0;i<xest.getSizeX();i++){
+            for(int j=0;j<xest.getSizeY();j++){
+                if((xest.data[i][j].getReal() > 0) && (P->data[i][j].getReal() > 0.5)){
+                    x.data[i][j].setReal(xest.data[i][j].getReal());
+                }else{
+                    x.data[i][j].setReal(0.0);
+                }
+            }
+        }
+
+        /*
+        for(int i=0;i<xest.getSizeX();i++){
+            for(int j=0;j<xest.getSizeY();j++){
+                if((xest.data[i][j].getReal() > 0) && (P->data[i][j].getReal() > 0.5)){
+                    x.data[i][j].setReal(xest.data[i][j].getReal());
+                }else{
+                    x.data[i][j].setReal(x.data[i][j].getReal() - 0.93*xest.data[i][j].getReal());
+                }
+            }
+        }
+        */
+
+        if(k%500==0){
+            emit signal_plotResult(&x);
+            emit signal_plotAmpl(&X);
+            emit signal_plotPhase(&X);
+            qDebug() << "Err: " << Serr1/Serr2;
+            this->msleep(500);
+        }
+
+        emit signal_setProgress((k+1)*100/n_itteration);
+        emit signal_showMessage("Itteration: "+QString::number(k+1));
+    }
 
 
+    emit signal_plotResult(&x);
+    emit signal_plotAmpl(&X);
+    emit signal_plotPhase(&X);
+
+    this->sleep(1);
 
     return x;
+}
+
+
+void ProcessThread::generateProbeSquare(tComplex2D *data,double center_x,double center_y,double w,double h){
+    int i,j;
+    int minSize = data->getSizeX();
+    if(minSize > data->getSizeY()) minSize = data->getSizeY();
+
+    center_x *= minSize;
+    center_y *= minSize;
+    w *= minSize;
+    h *= minSize;
+
+    for(i=doubleToInt(center_x-w);i<doubleToInt(center_x+w);i++){
+        for(j=doubleToInt(center_y-h);j<doubleToInt(center_y+h);j++){
+            if(i<0 || j<0 || i>=data->getSizeX() || j>=data->getSizeY()) continue;
+            data->data[i][j].setReal(1.0);
+        }
+    }
+
+    return;
+}
+
+void ProcessThread::generateProbeCircle(tComplex2D *data,double r,double x,double y){
+    int i=0,j=0;
+    int minSize = data->getSizeX();
+    if(minSize > data->getSizeY()) minSize = data->getSizeY();
+
+    r *= minSize;
+    x *= minSize;
+    y *= minSize;
+
+    qDebug () << r << " " << x << " " << y;
+
+    for(i=doubleToInt(x-r);i<doubleToInt(x+r);i++){
+        for(j=doubleToInt(y-r);j<doubleToInt(y+r);j++){
+            if(i<0 || j<0 || i>=data->getSizeX() || j>=data->getSizeY()) continue;
+            if((i-x)*(i-x)+(j-y)*(j-y) < r*r) data->data[i][j].setReal(1.0);
+        }
+    }
+    return;
+}
+
+int ProcessThread::doubleToInt(double value){
+    return (int)(value+0.5);
 }

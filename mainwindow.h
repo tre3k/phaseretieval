@@ -31,6 +31,7 @@ public:
     QProgressBar *progressBar;
 
     tComplex2D InputImage;
+    tComplex2D measure;
 
     ProcessThread *process;
 

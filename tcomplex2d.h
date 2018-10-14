@@ -10,6 +10,7 @@ public:
     int getSizeX(void);
     int getSizeY(void);
     void clone(tComplex2D);
+    void cleanImgn();
     void deleteData(void);
 
     tComplex **data;

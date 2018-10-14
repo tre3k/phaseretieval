@@ -9,7 +9,8 @@
 
 struct s_data_process{
     int n_itteration;
-    tComplex2D inputData;
+    tComplex2D *inputData;
+    double betta;
 
 };
 
@@ -22,7 +23,11 @@ public:
 private:
     s_data_process *dp;
 
-    tComplex2D error_reduction(tComplex2D input,int n_itteration);
+    tComplex2D error_reduction(tComplex2D *input, tComplex2D *space_constr, int n_itteration);
+
+    void generateProbeCircle(tComplex2D *data,double r,double x,double y);
+    void generateProbeSquare(tComplex2D *data,double center_x,double center_y,double w,double h);
+    int doubleToInt(double);
 
 private slots:
     void slot_recive_data_process(s_data_process *);

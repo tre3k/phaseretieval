@@ -10,8 +10,8 @@ class tFFT{
 public:
     explicit tFFT(void);
 
-    void simplefft(double *real,double *imgn,int n);
-    void fft2d(tComplex2D *input,tComplex2D *output,double conjugation);
+    void simplefft(double *real,double *imgn,int n,bool direct);
+    void fft2d(tComplex2D *input,tComplex2D *output,bool direct);
     void dfft2d(tComplex2D *input,tComplex2D *output);
     void ifft2d(tComplex2D *input,tComplex2D *output);
 };

@@ -79,13 +79,12 @@ void MainWindow::on_actionExit_triggered()
 
 void MainWindow::on_actionProcess_triggered()
 {
-
-    tComplex2D measure;
     tFFT fft;
     fft.dfft2d(&InputImage,&measure);
 
     plotInAmpl->plot2D->plotComplex2DMapWithSort(measure,PLOT2D_COMPLEX2D_AMPLITUDE);
     plotInPhase->plot2D->plotComplex2DMapWithSort(measure,PLOT2D_COMPLEX2D_PHASE);
+
 
     for(int i=0;i<measure.getSizeX();i++){
         for(int j=0;j<measure.getSizeY();j++){
@@ -94,8 +93,9 @@ void MainWindow::on_actionProcess_triggered()
     }
 
     s_data_process *data_process = new s_data_process;
-    data_process->inputData = measure;
-    data_process->n_itteration = 10;
+    data_process->inputData = &measure;
+    data_process->n_itteration = 10000;
+    data_process->betta = 0.79;
 
 
     emit signal_send_data_process(data_process);
@@ -169,11 +169,11 @@ void MainWindow::slot_setProgress(int value){
 
 void MainWindow::slot_plotResult(tComplex2D *data){
     plotOut->plot2D->plotComplex2DMap(*data,PLOT2D_COMPLEX2D_REAL);
+    //plotOut->plot2D->plotComplex2DMap(*data,PLOT2D_COMPLEX2D_AMPLITUDE);
     return;
 }
 
 void MainWindow::slot_plotOutAmpl(tComplex2D *data){
-    qDebug () << "asd";
     plotOutAmpl->plot2D->plotComplex2DMapWithSort(*data,PLOT2D_COMPLEX2D_AMPLITUDE);
     return;
 }
