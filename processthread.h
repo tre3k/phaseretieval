@@ -25,6 +25,8 @@ private:
 
     tComplex2D error_reduction(tComplex2D *input, tComplex2D *space_constr, int n_itteration);
 
+    double findError(tComplex2D *ideal,tComplex2D *compare);
+
     void generateProbeCircle(tComplex2D *data,double r,double x,double y);
     void generateProbeSquare(tComplex2D *data,double center_x,double center_y,double w,double h);
     int doubleToInt(double);

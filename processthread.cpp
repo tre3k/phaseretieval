@@ -8,8 +8,8 @@ void ProcessThread::run(){
 
     tComplex2D P(dp->inputData->getSizeX(),dp->inputData->getSizeY());
 
-    //generateProbeSquare(&P,0.5,0.5,0.4,0.4);
-    generateProbeSquare(&P,0.390625,0.390625,0.390625,0.390625);
+    generateProbeSquare(&P,0.5,0.5,0.5,0.5);
+    //generateProbeSquare(&P,0.390625,0.390625,0.390625,0.390625);
     error_reduction(dp->inputData,&P,dp->n_itteration);
 }
 
@@ -23,31 +23,25 @@ tComplex2D ProcessThread::error_reduction(tComplex2D *F,tComplex2D *P,int n_itte
     tComplex2D x,xest,X(F->getSizeX(),F->getSizeY());
     tFFT fft;
 
-    double Serr1,Serr2,Err;
-
-    Serr2 = 0.0;
-
     for(int i=0;i<X.getSizeX();i++){
         for(int j=0;j<X.getSizeY();j++){
             X.data[i][j].setAmplAndPhse(F->data[i][j].getAmpl(),2*M_PI*(rand()%100-50)/100);
-            Serr2 += F->data[i][j].getAmpl()*F->data[i][j].getAmpl();
         }
     }
 
     fft.ifft2d(&X,&x);
-    x.cleanImgn();
+    //x.cleanImgn();
 
     for(int k=0;k<n_itteration;k++){
         // direct FFT
         fft.dfft2d(&x,&X);
 
-        Serr1 = 0.0;
-        for(int i=0;i<X.getSizeX();i++){
-            for(int j=0;j<X.getSizeY();j++){
-                Serr1 += (X.data[i][j].getAmpl()-F->data[i][j].getAmpl())*
-                         (X.data[i][j].getAmpl()-F->data[i][j].getAmpl());
-            }
-
+        if((k+1)%200==0){
+            emit signal_plotResult(&x);
+            emit signal_plotAmpl(&X);
+            emit signal_plotPhase(&X);
+            qDebug() << "Err: " << findError(F,&X);
+            this->msleep(500);
         }
 
         // replace Amplitude
@@ -73,26 +67,6 @@ tComplex2D ProcessThread::error_reduction(tComplex2D *F,tComplex2D *P,int n_itte
             }
         }
 
-        /*
-        for(int i=0;i<xest.getSizeX();i++){
-            for(int j=0;j<xest.getSizeY();j++){
-                if((xest.data[i][j].getReal() > 0) && (P->data[i][j].getReal() > 0.5)){
-                    x.data[i][j].setReal(xest.data[i][j].getReal());
-                }else{
-                    x.data[i][j].setReal(x.data[i][j].getReal() - 0.93*xest.data[i][j].getReal());
-                }
-            }
-        }
-        */
-
-        if(k%500==0){
-            emit signal_plotResult(&x);
-            emit signal_plotAmpl(&X);
-            emit signal_plotPhase(&X);
-            qDebug() << "Err: " << Serr1/Serr2;
-            this->msleep(500);
-        }
-
         emit signal_setProgress((k+1)*100/n_itteration);
         emit signal_showMessage("Itteration: "+QString::number(k+1));
     }
@@ -107,6 +81,23 @@ tComplex2D ProcessThread::error_reduction(tComplex2D *F,tComplex2D *P,int n_itte
     return x;
 }
 
+double ProcessThread::findError(tComplex2D *ideal,tComplex2D *compare){
+    double S1,S2,Err;
+    S1 = 0.0;
+    S2 = S1;
+
+    for(int i=0;i<ideal->getSizeX();i++){
+        for(int j=0;j<ideal->getSizeY();j++){
+            S1 += (compare->data[i][j].getAmpl()-ideal->data[i][j].getAmpl())*
+                  (compare->data[i][j].getAmpl()-ideal->data[i][j].getAmpl());
+            S2 += ideal->data[i][j].getAmpl()*ideal->data[i][j].getAmpl();
+        }
+    }
+
+    Err = sqrt(S1/S2);
+
+    return Err;
+}
 
 void ProcessThread::generateProbeSquare(tComplex2D *data,double center_x,double center_y,double w,double h){
     int i,j;
