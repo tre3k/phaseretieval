@@ -4,6 +4,7 @@ tPlot2DCase::tPlot2DCase(QWidget *parent) : QWidget (parent){
     vLayout = new QVBoxLayout;
     hLayout = new QHBoxLayout;
     checkBoxLog = new QCheckBox("log");
+    checkBoxHold = new QCheckBox("hold");
     checkBoxLog->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
     plot2D = new tPlot2D;
@@ -11,6 +12,7 @@ tPlot2DCase::tPlot2DCase(QWidget *parent) : QWidget (parent){
     vLayout->addLayout(hLayout);
     //hLayout->setDirection(QBoxLayout::Direction::RightToLeft);
     hLayout->addSpacing(1000);
+    hLayout->addWidget(checkBoxHold);
     hLayout->addWidget(checkBoxLog);
     this->setLayout(vLayout);
 

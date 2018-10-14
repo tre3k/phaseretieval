@@ -39,6 +39,7 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="actionProcess"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionOpen_image">
@@ -49,6 +50,11 @@
   <action name="actionExit">
    <property name="text">
     <string>Exit</string>
+   </property>
+  </action>
+  <action name="actionProcess">
+   <property name="text">
+    <string>Process</string>
    </property>
   </action>
  </widget>

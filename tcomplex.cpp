@@ -29,12 +29,18 @@ void tComplex::setPhase(double value){
     return;
 }
 
+void tComplex::setAmplAndPhse(double Ampl,double Phase){
+    real = Ampl*cos(Phase);
+    imgn = Ampl*sin(Phase);
+    return;
+}
+
 double tComplex::getReal(){
     return real;
 }
 
 double tComplex::getImgn(){
-    return real;
+    return imgn;
 }
 
 double tComplex::getAmpl(){

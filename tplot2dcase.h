@@ -16,7 +16,7 @@ public:
     explicit tPlot2DCase(QWidget *parent = 0);
     tPlot2D *plot2D;
     QCheckBox *checkBoxLog;
-    QCheckBox *checkBoxManual;
+    QCheckBox *checkBoxHold;
     QVBoxLayout *vLayout;
     QHBoxLayout *hLayout;
 

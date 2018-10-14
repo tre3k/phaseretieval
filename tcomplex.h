@@ -10,6 +10,7 @@ public:
     void setImgn(double);
     void setAmpl(double);
     void setPhase(double);
+    void setAmplAndPhse(double Ampl,double Phase);
 
     double getReal(void);
     double getImgn(void);
