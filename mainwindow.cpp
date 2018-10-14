@@ -95,7 +95,7 @@ void MainWindow::on_actionProcess_triggered()
     s_data_process *data_process = new s_data_process;
     data_process->inputData = &measure;
     data_process->n_itteration = 10000;
-    data_process->betta = 0.79;
+    data_process->betta = 0.93;
 
 
     emit signal_send_data_process(data_process);

@@ -24,6 +24,7 @@ private:
     s_data_process *dp;
 
     tComplex2D error_reduction(tComplex2D *input, tComplex2D *space_constr, int n_itteration);
+    tComplex2D hybrid_input_output(tComplex2D *input, tComplex2D *space_constr, double betta,int n_itteration);
 
     double findError(tComplex2D *ideal,tComplex2D *compare);
 
