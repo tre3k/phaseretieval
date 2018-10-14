@@ -27,23 +27,23 @@ CONFIG += c++11
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-    tplot.cpp \
-    qcustomplot.cpp \
-    processthread.cpp \
-    tcomplex2d.cpp \
-    tcomplex.cpp \
-    tplot2d.cpp \
-    tplot2dcase.cpp
+        processthread.cpp \
+        tcomplex.cpp \
+        tcomplex2d.cpp \
+        qcustomplot.cpp \
+        tplot2d.cpp \
+        tplot.cpp \
+        tplot2dcase.cpp
 
 HEADERS += \
         mainwindow.h \
-    tplot.h \
-    qcustomplot.h \
-    processthread.h \
-    tcomplex2d.h \
-    tcomplex.h \
-    tplot2d.h \
-    tplot2dcase.h
+        processthread.h \
+        tcomplex.h \
+        tcomplex2d.h \
+        qcustomplot.h \
+        tplot.h \
+        tplot2d.h \
+        tplot2dcase.h
 
 FORMS += \
         mainwindow.ui

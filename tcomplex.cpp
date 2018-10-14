@@ -16,12 +16,14 @@ void tComplex::setImgn(double value){
 }
 
 void tComplex::setAmpl(double value){
-
+    double Phase = this->getPhase();
+    real = value*cos(Phase);
+    imgn = value*sin(Phase);
+    return;
 }
 
 void tComplex::setPhase(double value){
     double Ampl = this->getAmpl();
-
     real = Ampl*cos(value);
     imgn = Ampl*sin(value);
     return;
