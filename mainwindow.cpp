@@ -10,6 +10,8 @@ MainWindow::MainWindow(QWidget *parent) :
     QGridLayout *mainLayout = new QGridLayout();
     QWidget *mainWidget = new QWidget();
 
+    process = new ProcessThread();
+
     plotIn = new tPlot2DCase();
     plotOut = new tPlot2DCase(); ;
     plotInAmpl = new tPlot2DCase();
@@ -41,6 +43,28 @@ MainWindow::MainWindow(QWidget *parent) :
     mainWidget->setLayout(mainLayout);
     this->setCentralWidget(mainWidget);
 
+    progressBar = new QProgressBar;
+    progressBar->setMaximumSize(100,13);
+    progressBar->setMaximum(100);
+
+    this->statusBar()->addPermanentWidget(progressBar);
+
+
+    connect(this,SIGNAL(signal_send_data_process(s_data_process *)),
+            process,SLOT(slot_recive_data_process(s_data_process *)));
+    connect(process,SIGNAL(signal_showMessage(QString)),
+            this,SLOT(slot_showMessage(QString)));
+
+    connect(process,SIGNAL(signal_setProgress(int)),
+            this,SLOT(slot_setProgress(int)));
+
+    connect(process,SIGNAL(signal_plotResult(tComplex2D *)),
+            this,SLOT(slot_plotResult(tComplex2D *)));
+    connect(process,SIGNAL(signal_plotAmpl(tComplex2D *)),
+            this,SLOT(slot_plotOutAmpl(tComplex2D *)));
+    connect(process,SIGNAL(signal_plotPhase(tComplex2D *)),
+            this,SLOT(slot_plotOutPhase(tComplex2D *)));
+
 }
 
 MainWindow::~MainWindow()
@@ -60,6 +84,22 @@ void MainWindow::on_actionProcess_triggered()
     tFFT fft;
     fft.dfft2d(&InputImage,&measure);
 
+    plotInAmpl->plot2D->plotComplex2DMapWithSort(measure,PLOT2D_COMPLEX2D_AMPLITUDE);
+    plotInPhase->plot2D->plotComplex2DMapWithSort(measure,PLOT2D_COMPLEX2D_PHASE);
+
+    for(int i=0;i<measure.getSizeX();i++){
+        for(int j=0;j<measure.getSizeY();j++){
+            measure.data[i][j].setPhase(0.0);
+        }
+    }
+
+    s_data_process *data_process = new s_data_process;
+    data_process->inputData = measure;
+    data_process->n_itteration = 10;
+
+
+    emit signal_send_data_process(data_process);
+    process->start();
 
 }
 
@@ -91,7 +131,6 @@ void MainWindow::OpenImage(QString filename, tComplex2D *output){
 
     sx = img->width();
     sy = img->height();
-    qDebug () << sx << " " << sy;
 
     nx = log(sx)/log(2);
     ny = log(sy)/log(2);
@@ -116,5 +155,30 @@ void MainWindow::OpenImage(QString filename, tComplex2D *output){
     }
 
 
+    return;
+}
+
+void MainWindow::slot_showMessage(QString msg){
+    this->statusBar()->showMessage(msg);
+}
+
+void MainWindow::slot_setProgress(int value){
+    progressBar->setValue(value);
+}
+
+
+void MainWindow::slot_plotResult(tComplex2D *data){
+    plotOut->plot2D->plotComplex2DMap(*data,PLOT2D_COMPLEX2D_REAL);
+    return;
+}
+
+void MainWindow::slot_plotOutAmpl(tComplex2D *data){
+    qDebug () << "asd";
+    plotOutAmpl->plot2D->plotComplex2DMapWithSort(*data,PLOT2D_COMPLEX2D_AMPLITUDE);
+    return;
+}
+
+void MainWindow::slot_plotOutPhase(tComplex2D *data){
+    plotOutPhase->plot2D->plotComplex2DMapWithSort(*data,PLOT2D_COMPLEX2D_PHASE);
     return;
 }

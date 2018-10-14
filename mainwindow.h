@@ -28,7 +28,11 @@ public:
     tPlot2DCase *plotOutAmpl;
     tPlot2DCase *plotOutPhase;
 
+    QProgressBar *progressBar;
+
     tComplex2D InputImage;
+
+    ProcessThread *process;
 
 
 private slots:
@@ -39,6 +43,17 @@ private slots:
     void on_actionOpen_image_triggered();
 
     void OpenImage(QString filename, tComplex2D *output);
+
+public slots:
+    void slot_showMessage(QString);
+    void slot_setProgress(int);
+
+    void slot_plotResult(tComplex2D *);
+    void slot_plotOutAmpl(tComplex2D *);
+    void slot_plotOutPhase(tComplex2D *);
+
+signals:
+    void signal_send_data_process(s_data_process *);
 
 private:
     Ui::MainWindow *ui;

@@ -19,6 +19,7 @@ public:
     QCPColorMap *ColorMap;
     QCPColorScale *ColorScale;
 
+public slots:
     void plot2DMap(double **data,int size_x,int size_y);
     void plotComplex2DMap(tComplex2D,int param);
     void plotComplex2DMapWithSort(tComplex2D,int param);
