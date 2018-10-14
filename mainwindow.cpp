@@ -169,7 +169,6 @@ void MainWindow::slot_setProgress(int value){
 
 void MainWindow::slot_plotResult(tComplex2D *data){
     plotOut->plot2D->plotComplex2DMap(*data,PLOT2D_COMPLEX2D_REAL);
-    //plotOut->plot2D->plotComplex2DMap(*data,PLOT2D_COMPLEX2D_AMPLITUDE);
     return;
 }
 

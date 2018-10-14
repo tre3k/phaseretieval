@@ -22,6 +22,7 @@ void ProcessThread::slot_recive_data_process(s_data_process *lpd){
 tComplex2D ProcessThread::error_reduction(tComplex2D *F,tComplex2D *P,int n_itteration){
     tComplex2D x,xest,X(F->getSizeX(),F->getSizeY());
     tFFT fft;
+    double treshold = 1.0;
 
     for(int i=0;i<X.getSizeX();i++){
         for(int j=0;j<X.getSizeY();j++){
@@ -30,7 +31,7 @@ tComplex2D ProcessThread::error_reduction(tComplex2D *F,tComplex2D *P,int n_itte
     }
 
     fft.ifft2d(&X,&x);
-    //x.cleanImgn();
+    x.cleanImgn();
 
     for(int k=0;k<n_itteration;k++){
         // direct FFT
@@ -63,6 +64,15 @@ tComplex2D ProcessThread::error_reduction(tComplex2D *F,tComplex2D *P,int n_itte
                     x.data[i][j].setReal(xest.data[i][j].getReal());
                 }else{
                     x.data[i][j].setReal(0.0);
+                }
+            }
+        }
+
+
+        for(int i=0;i<xest.getSizeX();i++){
+            for(int j=0;j<xest.getSizeY();j++){
+                if(xest.data[i][j].getReal() > treshold){
+                    x.data[i][j].setReal(treshold);
                 }
             }
         }
