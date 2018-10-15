@@ -53,3 +53,34 @@ void tComplex2D::cleanImgn(){
     }
     return;
 }
+
+void tComplex2D::reSort(){
+    double tmp_real = 0.0;
+    double tmp_imgn = 0.0;
+
+    for(int i=0;i<this->getSizeX();i++){
+        for(int j=0;j<this->getSizeY()/2;j++){
+            tmp_real = this->data[i][j].getReal();
+            tmp_imgn = this->data[i][j].getImgn();
+
+            this->data[i][j].setReal(this->data[i][this->getSizeY()/2+j].getReal());
+            this->data[i][j].setImgn(this->data[i][this->getSizeY()/2+j].getImgn());
+
+            this->data[i][this->getSizeY()/2+j].setReal(tmp_real);
+            this->data[i][this->getSizeY()/2+j].setImgn(tmp_imgn);
+        }
+    }
+
+    for(int i=0;i<this->getSizeX()/2;i++){
+        for(int j=0;j<this->getSizeY();j++){
+            tmp_real = this->data[i][j].getReal();
+            tmp_imgn = this->data[i][j].getImgn();
+
+            this->data[i][j].setReal(this->data[this->getSizeY()/2+i][j].getReal());
+            this->data[i][j].setImgn(this->data[this->getSizeY()/2+i][j].getImgn());
+
+            this->data[this->getSizeY()/2+i][j].setReal(tmp_real);
+            this->data[this->getSizeY()/2+i][j].setImgn(tmp_imgn);
+        }
+    }
+}

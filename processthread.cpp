@@ -8,19 +8,19 @@ void ProcessThread::run(){
 
     tComplex2D P(dp->inputData->getSizeX(),dp->inputData->getSizeY());
 
-    generateProbeSquare(&P,0.5,0.5,0.5,0.5);
-    // generateProbeSquare(&P,0.5,0.5,0.34,0.34);
-    //generateProbeCircle(&P,0.5,0.5,0.5);
+    //generateProbeSquare(&P,0.5,0.5,0.5,0.5);
+    //generateProbeSquare(&P,0.5,0.5,0.24,0.24);
+    //generateProbeCircle(&P,0.28,0.3,0.3);
     //generateProbeSquare(&P,0.390625,0.390625,0.390625,0.390625);
-    error_reduction(dp->inputData,&P,dp->n_itteration);
-    //hybrid_input_output(dp->inputData,&P,dp->betta,dp->n_itteration);
+    //error_reduction(dp->inputData,&P,dp->n_itteration);
+    hybrid_input_output(dp->inputData,&P,dp->betta,dp->n_itteration);
 }
 
 
 tComplex2D ProcessThread::error_reduction(tComplex2D *F,tComplex2D *P,int n_itteration){
     tComplex2D x,xest,X(F->getSizeX(),F->getSizeY());
     tFFT fft;
-    double treshold = 1.0;
+    double treshold = 10.0;
 
     for(int i=0;i<X.getSizeX();i++){
         for(int j=0;j<X.getSizeY();j++){
@@ -92,7 +92,8 @@ tComplex2D ProcessThread::error_reduction(tComplex2D *F,tComplex2D *P,int n_itte
 tComplex2D ProcessThread::hybrid_input_output(tComplex2D *F,tComplex2D *P,double betta,int n_itteration){
     tComplex2D x,xest,X(F->getSizeX(),F->getSizeY());
     tFFT fft;
-    double treshold = 1.0;
+    double treshold = 19.0;  //for SANS
+    //double treshold = 1.0;
 
     for(int i=0;i<X.getSizeX();i++){
         for(int j=0;j<X.getSizeY();j++){

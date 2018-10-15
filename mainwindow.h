@@ -45,6 +45,11 @@ private slots:
 
     void OpenImage(QString filename, tComplex2D *output);
 
+    void on_actionOpen_Amplitude_triggered();
+    void ReadSANS1(tComplex2D *data, QString filename);
+
+    void on_actionOpen_SANS_1_data_triggered();
+
 public slots:
     void slot_showMessage(QString);
     void slot_setProgress(int);
@@ -57,6 +62,7 @@ signals:
     void signal_send_data_process(s_data_process *);
 
 private:
+    int counter = 0;
     Ui::MainWindow *ui;
 };
 

@@ -13,6 +13,8 @@ public:
     void cleanImgn();
     void deleteData(void);
 
+    void reSort(void);
+
     tComplex **data;
 private:
     int SizeX,SizeY;
