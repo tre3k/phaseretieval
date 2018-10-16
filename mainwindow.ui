@@ -33,7 +33,15 @@
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
+   <widget class="QMenu" name="menuDialogs">
+    <property name="title">
+     <string>&amp;Dialogs</string>
+    </property>
+    <addaction name="actionErrorsDialog"/>
+    <addaction name="actionOptions"/>
+   </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuDialogs"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -43,6 +51,7 @@
     <bool>false</bool>
    </attribute>
    <addaction name="actionProcess"/>
+   <addaction name="actionStop"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionOpen_image">
@@ -62,12 +71,27 @@
   </action>
   <action name="actionOpen_Amplitude">
    <property name="text">
-    <string>Open Amplitude</string>
+    <string>Open &amp;Amplitude</string>
    </property>
   </action>
   <action name="actionOpen_SANS_1_data">
    <property name="text">
-    <string>Open SANS-1 data</string>
+    <string>Open &amp;SANS-1 data</string>
+   </property>
+  </action>
+  <action name="actionStop">
+   <property name="text">
+    <string>Stop</string>
+   </property>
+  </action>
+  <action name="actionErrorsDialog">
+   <property name="text">
+    <string>Errors</string>
+   </property>
+  </action>
+  <action name="actionOptions">
+   <property name="text">
+    <string>Options</string>
    </property>
   </action>
  </widget>

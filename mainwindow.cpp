@@ -32,6 +32,85 @@ MainWindow::MainWindow(QWidget *parent) :
     plotIn->plot2D->ColorMap->setGradient(QCPColorGradient::gpGrayscale);
     plotOut->plot2D->ColorMap->setGradient(QCPColorGradient::gpGrayscale);
 
+    spinBoxItteration = new QSpinBox();
+    spinBoxBetta = new QDoubleSpinBox();
+    spinBoxTreshold = new QDoubleSpinBox();
+    spinBoxBackground = new QDoubleSpinBox();
+
+    spinBoxItteration->setMaximum(999999);
+    spinBoxItteration->setValue(800);
+    spinBoxTreshold->setValue(1.0);
+    spinBoxTreshold->setSingleStep(0.1);
+    spinBoxTreshold->setMaximum(999999);
+    spinBoxTreshold->setMinimum(0);
+    spinBoxBackground->setValue(0.0);
+    spinBoxBackground->setSingleStep(0.1);
+    spinBoxBackground->setMaximum(999999);
+    spinBoxBackground->setMinimum(-999999);
+    spinBoxBetta->setValue(0.78);
+    spinBoxBetta->setDecimals(2);
+    spinBoxBetta->setSingleStep(0.01);
+    spinBoxBetta->setEnabled(false);
+
+    comboSelectMethod = new QComboBox();
+    comboSelectMethod->addItem("Error reduction");
+    comboSelectMethod->addItem("HIO");
+
+
+    ui->mainToolBar->addSeparator();
+    ui->mainToolBar->addWidget(new QLabel(" Treshold: "));
+    ui->mainToolBar->addWidget(spinBoxTreshold);
+    ui->mainToolBar->addWidget(new QLabel(" Background: "));
+    ui->mainToolBar->addWidget(spinBoxBackground);
+    ui->mainToolBar->addWidget(new QLabel(" Betta: "));
+    ui->mainToolBar->addWidget(spinBoxBetta);
+    ui->mainToolBar->addWidget(new QLabel(" N itteration: "));
+    ui->mainToolBar->addWidget(spinBoxItteration);
+    ui->mainToolBar->addSeparator();
+    ui->mainToolBar->addWidget(comboSelectMethod);
+
+
+    secondToolBar = new QToolBar("Probe function");
+    this->addToolBar(secondToolBar);
+
+    comboSelectProbe = new QComboBox();
+    comboSelectProbe->addItem("Square");
+    comboSelectProbe->addItem("Circle");
+
+    labelPorbe1 = new QLabel(" x0: ");
+    labelPorbe2 = new QLabel(" y0: ");
+    labelPorbe3 = new QLabel(" w: ");
+    labelPorbe4 = new QLabel(" h: ");
+
+    spinBoxProbe1 = new QDoubleSpinBox();
+    spinBoxProbe1->setRange(0.0,1.0);
+    spinBoxProbe1->setValue(0.5);
+    spinBoxProbe1->setSingleStep(0.01);
+    spinBoxProbe2 = new QDoubleSpinBox();
+    spinBoxProbe2->setRange(0.0,1.0);
+    spinBoxProbe2->setValue(0.5);
+    spinBoxProbe2->setSingleStep(0.01);
+    spinBoxProbe3 = new QDoubleSpinBox();
+    spinBoxProbe3->setRange(0.0,1.0);
+    spinBoxProbe3->setValue(0.5);
+    spinBoxProbe3->setSingleStep(0.01);
+    spinBoxProbe4 = new QDoubleSpinBox();
+    spinBoxProbe4->setRange(0.0,1.0);
+    spinBoxProbe4->setValue(0.5);
+    spinBoxProbe4->setSingleStep(0.01);
+
+    secondToolBar->addWidget(new QLabel("Probe function: "));
+    secondToolBar->addWidget(comboSelectProbe);
+    secondToolBar->addWidget(labelPorbe1);
+    secondToolBar->addWidget(spinBoxProbe1);
+    secondToolBar->addWidget(labelPorbe2);
+    secondToolBar->addWidget(spinBoxProbe2);
+    secondToolBar->addWidget(labelPorbe3);
+    secondToolBar->addWidget(spinBoxProbe3);
+    secondToolBar->addWidget(labelPorbe4);
+    secondToolBar->addWidget(spinBoxProbe4);
+
+
     mainLayout->addWidget(plotIn,0,0);
     mainLayout->addWidget(plotInAmpl,0,1);
     mainLayout->addWidget(plotInPhase,0,2);
@@ -49,6 +128,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
     this->statusBar()->addPermanentWidget(progressBar);
 
+    dialogErrors = new PlotDialog();
+    dialogErrors->setAxiesLabel("itteration","Error");
+
 
     connect(this,SIGNAL(signal_send_data_process(s_data_process *)),
             process,SLOT(slot_recive_data_process(s_data_process *)));
@@ -65,6 +147,14 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(process,SIGNAL(signal_plotPhase(tComplex2D *)),
             this,SLOT(slot_plotOutPhase(tComplex2D *)));
 
+    connect(comboSelectMethod,SIGNAL(activated(int)),
+            this,SLOT(slot_comboSelectedMethod(int)));
+    connect(comboSelectProbe,SIGNAL(activated(int)),
+            this,SLOT(slot_comboSelectedProbe(int)));
+
+    connect(plotOutPhase->plot2D,SIGNAL(signal_ready()),
+            process,SLOT(slot_ready()));
+
 }
 
 MainWindow::~MainWindow()
@@ -79,13 +169,26 @@ void MainWindow::on_actionExit_triggered()
 
 void MainWindow::on_actionProcess_triggered()
 {
-
-
     s_data_process *data_process = new s_data_process;
     data_process->inputData = &measure;
-    data_process->n_itteration = 10000;
-    data_process->betta = 0.84;
+    data_process->n_itteration = spinBoxItteration->value();
+    data_process->betta = spinBoxBetta->value();
+    data_process->treshold = spinBoxTreshold->value();
+    data_process->method = comboSelectMethod->currentIndex();
+    data_process->background = spinBoxBackground->value();
 
+    data_process->probeParam1 = spinBoxProbe1->value();
+    data_process->probeParam2 = spinBoxProbe2->value();
+    data_process->probeParam3 = spinBoxProbe3->value();
+    data_process->probeParam4 = spinBoxProbe4->value();
+
+    data_process->probe = comboSelectProbe->currentIndex();
+
+    dialogErrors->plot->clearGraphs();
+    dialogErrors->setGraph(dialogErrors->plot->createGraph());
+
+    data_process->dialogErrors = dialogErrors;
+    data_process->n_of_plots = 20;
 
     emit signal_send_data_process(data_process);
     process->start();
@@ -112,6 +215,20 @@ void MainWindow::on_actionOpen_image_triggered()
 
     tFFT fft;
     fft.dfft2d(&InputImage,&measure);
+
+#ifdef BEAM_STOP_EMULATION
+    for(int i=0;i<measure.getSizeX();i++){
+        for(int j=0;j<measure.getSizeY();j++){
+            if(i < 6 && j < 6 ) measure.data[i][j].setAmpl(0.0);
+            if(i < 6 && j > measure.getSizeY()-6 ) measure.data[i][j].setAmpl(0.0);
+            if(i > measure.getSizeX()-6 && j < 6 ) measure.data[i][j].setAmpl(0.0);
+            if(i > measure.getSizeX()-6 && j > measure.getSizeY()-6 ) measure.data[i][j].setAmpl(0.0);
+        }
+    }
+
+    fft.ifft2d(&measure,&InputImage);
+    plotOut->plot2D->plotComplex2DMap(InputImage,PLOT2D_COMPLEX2D_REAL);
+#endif
 
     plotInAmpl->plot2D->plotComplex2DMapWithSort(measure,PLOT2D_COMPLEX2D_AMPLITUDE);
     plotInPhase->plot2D->plotComplex2DMapWithSort(measure,PLOT2D_COMPLEX2D_PHASE);
@@ -207,7 +324,7 @@ void MainWindow::on_actionOpen_Amplitude_triggered()
     measure.reSort();
     for(int i=0;i<measure.getSizeX();i++){
         for(int j=0;j<measure.getSizeY();j++){
-            measure.data[i][j].setReal(measure.data[i][j].getReal());
+            measure.data[i][j].setReal(sqrt(measure.data[i][j].getReal()));
         }
     }
     plotInAmpl->plot2D->plotComplex2DMapWithSort(measure,PLOT2D_COMPLEX2D_AMPLITUDE);
@@ -279,6 +396,7 @@ void MainWindow::ReadSANS1(tComplex2D *data, QString filename){
         for(int i=0;i<data->getSizeX();i++){
             for(int j=0;j<data->getSizeY();j++){
                 data->data[i][j].setReal(sqrt(data->data[i][j].getReal()/maxValue));
+                //data->data[i][j].setReal(data->data[i][j].getReal()/maxValue);
             }
         }
 
@@ -292,4 +410,47 @@ void MainWindow::on_actionOpen_SANS_1_data_triggered()
     ReadSANS1(&measure,filename);
     measure.reSort();
     plotInAmpl->plot2D->plotComplex2DMapWithSort(measure,PLOT2D_COMPLEX2D_AMPLITUDE);
+}
+
+void MainWindow::on_actionStop_triggered()
+{
+    process->terminate();
+}
+
+void MainWindow::slot_comboSelectedMethod(int index){
+    spinBoxBetta->setEnabled(false);
+    switch(index){
+    case METHOD_HYBRID_IN_OUT:
+        spinBoxBetta->setEnabled(true);
+        break;
+    }
+}
+
+void MainWindow::slot_comboSelectedProbe(int index){
+    labelPorbe4->setDisabled(false);
+    spinBoxProbe4->setDisabled(false);
+
+    switch(index){
+    case PROBE_FUNCTION_CIRCLE:
+        labelPorbe1->setText(" x0: ");
+        labelPorbe2->setText(" y0: ");
+        labelPorbe3->setText(" r: ");
+        labelPorbe4->setText("");
+        labelPorbe4->setDisabled(true);
+        spinBoxProbe4->setDisabled(true);
+        break;
+
+    case PROBE_FUNCTION_SQUARE:
+        labelPorbe1->setText(" x0: ");
+        labelPorbe2->setText(" y0: ");
+        labelPorbe3->setText(" h: ");
+        labelPorbe4->setText(" w: ");
+        break;
+
+    }
+}
+
+void MainWindow::on_actionErrorsDialog_triggered()
+{
+    dialogErrors->show();
 }

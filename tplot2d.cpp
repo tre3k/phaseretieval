@@ -24,6 +24,7 @@ void tPlot2D::plot2DMap(double **data,int size_x,int size_y){
     this->ColorMap->rescaleDataRange(true);
     this->rescaleAxes();
     this->replot();
+    emit signal_ready();
 }
 
 void tPlot2D::plotComplex2DMap(tComplex2D data, int param){
@@ -55,6 +56,7 @@ void tPlot2D::plotComplex2DMap(tComplex2D data, int param){
     this->ColorMap->rescaleDataRange(true);
     this->rescaleAxes();
     this->replot();
+    emit signal_ready();
 }
 
 void tPlot2D::plotComplex2DMapWithSort(tComplex2D data, int param){
@@ -91,4 +93,6 @@ void tPlot2D::plotComplex2DMapWithSort(tComplex2D data, int param){
 
     plotComplex2DMap(tmp_data,param);
     tmp_data.deleteData();
+
+    emit signal_ready();
 }

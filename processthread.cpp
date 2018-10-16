@@ -8,19 +8,33 @@ void ProcessThread::run(){
 
     tComplex2D P(dp->inputData->getSizeX(),dp->inputData->getSizeY());
 
-    //generateProbeSquare(&P,0.5,0.5,0.5,0.5);
-    //generateProbeSquare(&P,0.5,0.5,0.24,0.24);
-    //generateProbeCircle(&P,0.28,0.3,0.3);
     //generateProbeSquare(&P,0.390625,0.390625,0.390625,0.390625);
-    //error_reduction(dp->inputData,&P,dp->n_itteration);
-    hybrid_input_output(dp->inputData,&P,dp->betta,dp->n_itteration);
+
+    switch (dp->probe){
+    case PROBE_FUNCTION_SQUARE:
+        generateProbeSquare(&P,dp->probeParam1,dp->probeParam2,
+                               dp->probeParam4,dp->probeParam3);
+        break;
+    case PROBE_FUNCTION_CIRCLE:
+        generateProbeCircle(&P,dp->probeParam3,dp->probeParam1,dp->probeParam2);
+        break;
+    }
+
+    switch(dp->method){
+    case METHOD_ERROR_REDUCTION:
+        error_reduction(dp->inputData,&P,dp->n_itteration);
+        break;
+    case METHOD_HYBRID_IN_OUT:
+        hybrid_input_output(dp->inputData,&P,dp->betta,dp->n_itteration);
+        break;
+    }
 }
 
 
 tComplex2D ProcessThread::error_reduction(tComplex2D *F,tComplex2D *P,int n_itteration){
     tComplex2D x,xest,X(F->getSizeX(),F->getSizeY());
     tFFT fft;
-    double treshold = 10.0;
+    double treshold = dp->treshold;
 
     for(int i=0;i<X.getSizeX();i++){
         for(int j=0;j<X.getSizeY();j++){
@@ -35,13 +49,7 @@ tComplex2D ProcessThread::error_reduction(tComplex2D *F,tComplex2D *P,int n_itte
         // direct FFT
         fft.dfft2d(&x,&X);
 
-        if((k+1)%50==0){
-            emit signal_plotResult(&x);
-            emit signal_plotAmpl(&X);
-            emit signal_plotPhase(&X);
-            qDebug() << "Err: " << findError(F,&X);
-            this->msleep(500);
-        }
+        if((k+1)%dp->n_of_plots==0) plotGraphs(&x,&X,F,k);
 
         // replace Amplitude
         for(int i=0;i<X.getSizeX();i++){
@@ -58,7 +66,7 @@ tComplex2D ProcessThread::error_reduction(tComplex2D *F,tComplex2D *P,int n_itte
 
         for(int i=0;i<xest.getSizeX();i++){
             for(int j=0;j<xest.getSizeY();j++){
-                if((xest.data[i][j].getReal() > 0) && (P->data[i][j].getReal() > 0.5)){
+                if((xest.data[i][j].getReal() > dp->background) && (P->data[i][j].getReal() > 0.5)){
                     x.data[i][j].setReal(xest.data[i][j].getReal());
                 }else{
                     x.data[i][j].setReal(0.0);
@@ -77,8 +85,8 @@ tComplex2D ProcessThread::error_reduction(tComplex2D *F,tComplex2D *P,int n_itte
 
         emit signal_setProgress((k+1)*100/n_itteration);
         emit signal_showMessage("Itteration: "+QString::number(k+1));
+        ready = false;
     }
-
 
     emit signal_plotResult(&x);
     emit signal_plotAmpl(&X);
@@ -92,8 +100,8 @@ tComplex2D ProcessThread::error_reduction(tComplex2D *F,tComplex2D *P,int n_itte
 tComplex2D ProcessThread::hybrid_input_output(tComplex2D *F,tComplex2D *P,double betta,int n_itteration){
     tComplex2D x,xest,X(F->getSizeX(),F->getSizeY());
     tFFT fft;
-    double treshold = 19.0;  //for SANS
-    //double treshold = 1.0;
+    //double treshold = 19.0;  //for SANS
+    double treshold = dp->treshold;
 
     for(int i=0;i<X.getSizeX();i++){
         for(int j=0;j<X.getSizeY();j++){
@@ -108,13 +116,7 @@ tComplex2D ProcessThread::hybrid_input_output(tComplex2D *F,tComplex2D *P,double
         // direct FFT
         fft.dfft2d(&x,&X);
 
-        if((k+1)%50==0){
-            emit signal_plotResult(&x);
-            emit signal_plotAmpl(&X);
-            emit signal_plotPhase(&X);
-            qDebug() << "Err: " << findError(F,&X);
-            this->msleep(500);
-        }
+        if((k+1)%dp->n_of_plots==0) plotGraphs(&x,&X,F,k);
 
         // replace Amplitude
         for(int i=0;i<X.getSizeX();i++){
@@ -131,7 +133,7 @@ tComplex2D ProcessThread::hybrid_input_output(tComplex2D *F,tComplex2D *P,double
 
         for(int i=0;i<xest.getSizeX();i++){
             for(int j=0;j<xest.getSizeY();j++){
-                if((xest.data[i][j].getReal() > 0) && (P->data[i][j].getReal() > 0.5)){
+                if((xest.data[i][j].getReal() > dp->background) && (P->data[i][j].getReal() > 0.5)){
                     x.data[i][j].setReal(xest.data[i][j].getReal());
                 }else{
                     x.data[i][j].setReal(x.data[i][j].getReal() - betta*xest.data[i][j].getReal());
@@ -166,16 +168,18 @@ double ProcessThread::findError(tComplex2D *ideal,tComplex2D *compare){
     double S1,S2,Err;
     S1 = 0.0;
     S2 = S1;
+    double max = ideal->data[0][0].getReal();
 
     for(int i=0;i<ideal->getSizeX();i++){
         for(int j=0;j<ideal->getSizeY();j++){
             S1 += (compare->data[i][j].getAmpl()-ideal->data[i][j].getAmpl())*
                   (compare->data[i][j].getAmpl()-ideal->data[i][j].getAmpl());
             S2 += ideal->data[i][j].getAmpl()*ideal->data[i][j].getAmpl();
+            if(ideal->data[i][j].getReal() > max) max = ideal->data[i][j].getReal();
         }
     }
 
-    Err = sqrt(S1/S2);
+    Err = sqrt(S1/S2)/max;
 
     return Err;
 }
@@ -227,3 +231,15 @@ void ProcessThread::slot_recive_data_process(s_data_process *lpd){
     return;
 }
 
+void ProcessThread::slot_ready(){
+    ready = true;
+}
+
+void ProcessThread::plotGraphs(tComplex2D *x,tComplex2D *X, tComplex2D *F, int i){
+    emit signal_plotResult(x);
+    emit signal_plotAmpl(X);
+    emit signal_plotPhase(X);
+    dp->dialogErrors->addValue(i,findError(F,X));
+    //qDebug() << "Err: " << findError(F,&X);
+    while(!ready);
+}

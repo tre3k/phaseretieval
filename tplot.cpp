@@ -1,6 +1,8 @@
 #include "tplot.h"
 
 tPlot::tPlot(QWidget *parent) : QCustomPlot (parent){
+    graph_count = 0;
+
     this->setInteractions(QCP::iRangeZoom |
                           QCP::iRangeDrag |
                           QCP::iMultiSelect |
@@ -64,4 +66,43 @@ void tPlot::slot_selectionChanged(){
         }
       }
     return;
+}
+
+void tPlot::addNewValue(double value1,double value2,int graph){
+    dataX.clear();
+    dataY.clear();
+    dataX.append(value1);
+    dataY.append(value2);
+    this->graph(graph)->addData(dataX,dataY);
+    this->rescaleAxes(true);
+    this->replot();
+    emit signal_ready();
+}
+
+void tPlot::slot_addNewValue(double value1,double value2,int graph){
+    addNewValue(value1,value2,graph);
+}
+
+void tPlot::clearData(){
+    this->clearGraphs();
+}
+
+void tPlot::slot_clearData(){
+    clearData();
+}
+
+int tPlot::createGraph(QColor colorLine){
+    graph_count = this->graphCount();
+    this->addGraph();
+
+    this->graph(graph_count)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle,colorLine,colorLine,5));
+    this->graph(graph_count)->setPen(QPen(QColor(colorLine),1,Qt::NoPen,Qt::SquareCap,Qt::BevelJoin));
+    this->graph(graph_count)->selectionDecorator()->setPen(QPen(QColor(colorLine),2,Qt::DotLine,Qt::SquareCap,Qt::BevelJoin));
+
+    graph_count ++;
+    return graph_count-1;
+}
+
+void tPlot::clearGraph(int graph){
+    this->graph(graph)->data()->clear();
 }

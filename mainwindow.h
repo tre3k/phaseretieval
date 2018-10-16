@@ -8,6 +8,9 @@
 #include "tplot2dcase.h"
 #include "processthread.h"
 #include "tfft.h"
+#include "plotdialog.h"
+
+//#define BEAM_STOP_EMULATION
 
 namespace Ui {
 class MainWindow;
@@ -35,6 +38,28 @@ public:
 
     ProcessThread *process;
 
+    QDoubleSpinBox *spinBoxTreshold;
+    QDoubleSpinBox *spinBoxBackground;
+    QDoubleSpinBox *spinBoxBetta;
+    QSpinBox *spinBoxItteration;
+
+    QComboBox *comboSelectMethod;
+    QComboBox *comboSelectProbe;
+
+    QToolBar *secondToolBar;
+
+    QLabel *labelPorbe1;
+    QLabel *labelPorbe2;
+    QLabel *labelPorbe3;
+    QLabel *labelPorbe4;
+
+    QDoubleSpinBox *spinBoxProbe1;
+    QDoubleSpinBox *spinBoxProbe2;
+    QDoubleSpinBox *spinBoxProbe3;
+    QDoubleSpinBox *spinBoxProbe4;
+
+    PlotDialog *dialogErrors;
+
 
 private slots:
     void on_actionExit_triggered();
@@ -50,6 +75,10 @@ private slots:
 
     void on_actionOpen_SANS_1_data_triggered();
 
+    void on_actionStop_triggered();
+
+    void on_actionErrorsDialog_triggered();
+
 public slots:
     void slot_showMessage(QString);
     void slot_setProgress(int);
@@ -57,6 +86,9 @@ public slots:
     void slot_plotResult(tComplex2D *);
     void slot_plotOutAmpl(tComplex2D *);
     void slot_plotOutPhase(tComplex2D *);
+
+    void slot_comboSelectedMethod(int);
+    void slot_comboSelectedProbe(int);
 
 signals:
     void signal_send_data_process(s_data_process *);
