@@ -89,6 +89,7 @@ public slots:
 
     void slot_comboSelectedMethod(int);
     void slot_comboSelectedProbe(int);
+    void slot_spinBoxProbeChanged(double);
 
 signals:
     void signal_send_data_process(s_data_process *);

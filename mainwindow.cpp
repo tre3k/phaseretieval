@@ -155,6 +155,18 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(plotOutPhase->plot2D,SIGNAL(signal_ready()),
             process,SLOT(slot_ready()));
 
+    connect(spinBoxProbe1,SIGNAL(valueChanged(double)),
+            this,SLOT(slot_spinBoxProbeChanged(double)));
+    connect(spinBoxProbe2,SIGNAL(valueChanged(double)),
+            this,SLOT(slot_spinBoxProbeChanged(double)));
+    connect(spinBoxProbe3,SIGNAL(valueChanged(double)),
+            this,SLOT(slot_spinBoxProbeChanged(double)));
+    connect(spinBoxProbe4,SIGNAL(valueChanged(double)),
+            this,SLOT(slot_spinBoxProbeChanged(double)));
+
+    connect(process,SIGNAL(signal_plotErrorValue(double,double)),
+            dialogErrors,SLOT(slot_addValue(double,double)));
+
 }
 
 MainWindow::~MainWindow()
@@ -188,7 +200,7 @@ void MainWindow::on_actionProcess_triggered()
     dialogErrors->setGraph(dialogErrors->plot->createGraph());
 
     data_process->dialogErrors = dialogErrors;
-    data_process->n_of_plots = 20;
+    data_process->n_of_plots = 40;
 
     emit signal_send_data_process(data_process);
     process->start();
@@ -239,6 +251,11 @@ void MainWindow::on_actionOpen_image_triggered()
             measure.data[i][j].setPhase(0.0);
         }
     }
+
+    plotOut->plot2D->xAxis->setRange(0,measure.getSizeX());
+    plotOut->plot2D->yAxis->setRange(0,measure.getSizeY());
+    plotOut->plot2D->replot();
+    slot_comboSelectedProbe(0.0);
 }
 
 void MainWindow::OpenImage(QString filename, tComplex2D *output){
@@ -448,9 +465,85 @@ void MainWindow::slot_comboSelectedProbe(int index){
         break;
 
     }
+    slot_spinBoxProbeChanged(0.0);
 }
 
 void MainWindow::on_actionErrorsDialog_triggered()
 {
     dialogErrors->show();
+}
+
+void MainWindow::slot_spinBoxProbeChanged(double var){
+    int minSize = measure.getSizeX();
+    if(minSize > measure.getSizeY()) minSize = measure.getSizeY();
+
+    double x0,y0,radius,h,w;
+
+    x0 = spinBoxProbe1->value() * minSize;
+    y0 = spinBoxProbe2->value() * minSize;
+    h = spinBoxProbe3->value() * minSize;
+    w = spinBoxProbe4->value() * minSize;
+    radius = spinBoxProbe3->value() * minSize;
+
+    plotOut->plot2D->clearItems();
+
+
+    switch (comboSelectProbe->currentIndex()){
+    case PROBE_FUNCTION_CIRCLE:
+        QCPItemEllipse *ellipse;
+        ellipse = new QCPItemEllipse(plotOut->plot2D);
+        ellipse->setPen(QPen(QColor("green"),1,Qt::SolidLine,Qt::SquareCap,Qt::BevelJoin));
+
+        ellipse->topLeft->setCoords(x0+radius,y0+radius);
+        ellipse->bottomRight->setCoords(x0-radius,y0-radius);
+        break;
+
+    case PROBE_FUNCTION_SQUARE:
+        QCPItemLine *line1 = new QCPItemLine(plotOut->plot2D);
+        QCPItemLine *line2 = new QCPItemLine(plotOut->plot2D);
+        QCPItemLine *line3 = new QCPItemLine(plotOut->plot2D);
+        QCPItemLine *line4 = new QCPItemLine(plotOut->plot2D);
+        line1->setPen(QPen(QColor("green"),1,Qt::SolidLine,Qt::SquareCap,Qt::BevelJoin));
+        line2->setPen(QPen(QColor("green"),1,Qt::SolidLine,Qt::SquareCap,Qt::BevelJoin));
+        line3->setPen(QPen(QColor("green"),1,Qt::SolidLine,Qt::SquareCap,Qt::BevelJoin));
+        line4->setPen(QPen(QColor("green"),1,Qt::SolidLine,Qt::SquareCap,Qt::BevelJoin));
+
+        line1->start->setCoords(x0-w,y0+h);
+        line1->end->setCoords(x0+w,y0+h);
+        line2->start->setCoords(x0-w,y0-h);
+        line2->end->setCoords(x0+w,y0-h);
+        line3->start->setCoords(x0+w,y0+h);
+        line3->end->setCoords(x0+w,y0-h);
+        line4->start->setCoords(x0-w,y0+h);
+        line4->end->setCoords(x0-w,y0-h);
+        break;
+    }
+
+
+    /*
+    switch(comboSelectProbe->currentIndex()){
+    case PROBE_FUNCTION_CIRCLE:
+        QCPItemEllipse *ellipse = new QCPItemEllipse(plotOut->plot2D);
+        ellipse->setPen(QPen(QColor("green"),1,Qt::SolidLine,Qt::SquareCap,Qt::BevelJoin));
+        ellipse->topLeft->setCoords(100,100);
+        ellipse->bottomRight->setCoords(2,2);
+
+        break;
+
+
+    case PROBE_FUNCTION_SQUARE:
+        QCPItemLine *line1 = new QCPItemLine(plotOut->plot2D);
+
+        //QCPItemLine *line1 = new QCPItemLine(plot);
+        line1->setPen(QPen(QColor("green"),1,Qt::SolidLine,Qt::SquareCap,Qt::BevelJoin));
+
+        break;
+
+    }
+    */
+
+    plotOut->plot2D->repaint();
+    plotOut->plot2D->update();
+    plotOut->plot2D->replot();
+    return;
 }

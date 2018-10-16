@@ -239,7 +239,7 @@ void ProcessThread::plotGraphs(tComplex2D *x,tComplex2D *X, tComplex2D *F, int i
     emit signal_plotResult(x);
     emit signal_plotAmpl(X);
     emit signal_plotPhase(X);
-    dp->dialogErrors->addValue(i,findError(F,X));
-    //qDebug() << "Err: " << findError(F,&X);
+    emit signal_plotErrorValue(i,findError(F,X));
+    this->msleep(100);
     while(!ready);
 }

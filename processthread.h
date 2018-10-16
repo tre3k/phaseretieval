@@ -70,6 +70,7 @@ signals:
     void signal_plotResult(tComplex2D *);
     void signal_plotAmpl(tComplex2D *);
     void signal_plotPhase(tComplex2D *);
+    void signal_plotErrorValue(double x,double y);
 
 };
 
