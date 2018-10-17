@@ -35,7 +35,8 @@ SOURCES += \
         tplot2dcase.cpp \
         processthread.cpp \
         tfft.cpp \
-        plotdialog.cpp
+        plotdialog.cpp \
+        optiondialog.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -47,7 +48,8 @@ HEADERS += \
         tplot2dcase.h \
         processthread.h \
         tfft.h \
-        plotdialog.h
+        plotdialog.h \
+        optiondialog.h
 
 FORMS += \
         mainwindow.ui

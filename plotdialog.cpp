@@ -4,11 +4,25 @@ PlotDialog::PlotDialog(QWidget *parent) : QDialog(parent){
     mainLayout = new QVBoxLayout();
     this->setLayout(mainLayout);
 
+    menuBar = new QMenuBar;
+    mainLayout->setMenuBar(menuBar);
+
+    menuFile = new QMenu("&File");
+    actionSave = new QAction("&Save plot image");
+    actionExit = new QAction("E&xit");
+    menuFile->addAction(actionSave);
+    menuFile->addSeparator();
+    menuFile->addAction(actionExit);
+
+    menuBar->addMenu(menuFile);
+
+
     plot = new tPlot();
-
-
     mainLayout->addWidget(plot);
     this->setMinimumSize(300,200);
+
+    connect(actionExit,SIGNAL(triggered()),
+            this,SLOT(slot_actionExit()));
 
 }
 
@@ -31,4 +45,9 @@ void PlotDialog::slot_addValue(double x,double y){
 
 void PlotDialog::setGraph(int lgraph){
     graph = lgraph;
+}
+
+void PlotDialog::slot_actionExit(){
+    this->hide();
+    return;
 }

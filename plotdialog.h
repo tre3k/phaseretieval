@@ -3,6 +3,8 @@
 
 #include <QDialog>
 #include <QWidget>
+#include <QMenuBar>
+
 #include "tplot.h"
 
 class PlotDialog : public QDialog{
@@ -18,10 +20,17 @@ public:
 private:
     int graph;
     QVBoxLayout *mainLayout;
+    QMenuBar *menuBar;
+
+    QMenu *menuFile;
+    QAction *actionSave;
+    QAction *actionExit;
 
 private slots:
     void slot_SetAxiesLabel(QString labelX,QString LabelY);
     void slot_addValue(double x,double y);
+
+    void slot_actionExit();
 
 };
 

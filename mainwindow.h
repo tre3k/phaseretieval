@@ -9,6 +9,7 @@
 #include "processthread.h"
 #include "tfft.h"
 #include "plotdialog.h"
+#include "optiondialog.h"
 
 //#define BEAM_STOP_EMULATION
 
@@ -59,6 +60,9 @@ public:
     QDoubleSpinBox *spinBoxProbe4;
 
     PlotDialog *dialogErrors;
+    OptionDialog *dialogOptions;
+
+    s_options *Options;
 
 
 private slots:
@@ -78,6 +82,10 @@ private slots:
     void on_actionStop_triggered();
 
     void on_actionErrorsDialog_triggered();
+
+    void preparePlotOut();
+
+    void on_actionOptionsDialog_triggered();
 
 public slots:
     void slot_showMessage(QString);

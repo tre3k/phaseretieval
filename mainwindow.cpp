@@ -7,11 +7,19 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    Options = new s_options;
+    /* default options */
+    Options->number_of_plots = 20;
+    Options->image_format = IMAGE_FORMAT_JPG;
+
+
     QGridLayout *mainLayout = new QGridLayout();
     QWidget *mainWidget = new QWidget();
 
+    /* create QThread process */
     process = new ProcessThread();
 
+    /* build plots */
     plotIn = new tPlot2DCase();
     plotOut = new tPlot2DCase(); ;
     plotInAmpl = new tPlot2DCase();
@@ -32,6 +40,7 @@ MainWindow::MainWindow(QWidget *parent) :
     plotIn->plot2D->ColorMap->setGradient(QCPColorGradient::gpGrayscale);
     plotOut->plot2D->ColorMap->setGradient(QCPColorGradient::gpGrayscale);
 
+    /* create SpinBox for parameters of methods*/
     spinBoxItteration = new QSpinBox();
     spinBoxBetta = new QDoubleSpinBox();
     spinBoxTreshold = new QDoubleSpinBox();
@@ -56,7 +65,6 @@ MainWindow::MainWindow(QWidget *parent) :
     comboSelectMethod->addItem("Error reduction");
     comboSelectMethod->addItem("HIO");
 
-
     ui->mainToolBar->addSeparator();
     ui->mainToolBar->addWidget(new QLabel(" Treshold: "));
     ui->mainToolBar->addWidget(spinBoxTreshold);
@@ -70,6 +78,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->mainToolBar->addWidget(comboSelectMethod);
 
 
+    /* create second ToolBar for parameters of Probe Functions */
     secondToolBar = new QToolBar("Probe function");
     this->addToolBar(secondToolBar);
 
@@ -111,6 +120,7 @@ MainWindow::MainWindow(QWidget *parent) :
     secondToolBar->addWidget(spinBoxProbe4);
 
 
+    /* place plots on central widget */
     mainLayout->addWidget(plotIn,0,0);
     mainLayout->addWidget(plotInAmpl,0,1);
     mainLayout->addWidget(plotInPhase,0,2);
@@ -118,10 +128,10 @@ MainWindow::MainWindow(QWidget *parent) :
     mainLayout->addWidget(plotOutAmpl,1,1);
     mainLayout->addWidget(plotOutPhase,1,2);
 
-
     mainWidget->setLayout(mainLayout);
     this->setCentralWidget(mainWidget);
 
+    /* and place progressBar on StatusBar */
     progressBar = new QProgressBar;
     progressBar->setMaximumSize(100,13);
     progressBar->setMaximum(100);
@@ -130,8 +140,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
     dialogErrors = new PlotDialog();
     dialogErrors->setAxiesLabel("itteration","Error");
+    dialogOptions = new OptionDialog();
 
 
+    /* Connections signals and slots*/
     connect(this,SIGNAL(signal_send_data_process(s_data_process *)),
             process,SLOT(slot_recive_data_process(s_data_process *)));
     connect(process,SIGNAL(signal_showMessage(QString)),
@@ -252,10 +264,7 @@ void MainWindow::on_actionOpen_image_triggered()
         }
     }
 
-    plotOut->plot2D->xAxis->setRange(0,measure.getSizeX());
-    plotOut->plot2D->yAxis->setRange(0,measure.getSizeY());
-    plotOut->plot2D->replot();
-    slot_comboSelectedProbe(0.0);
+    preparePlotOut();
 }
 
 void MainWindow::OpenImage(QString filename, tComplex2D *output){
@@ -345,6 +354,7 @@ void MainWindow::on_actionOpen_Amplitude_triggered()
         }
     }
     plotInAmpl->plot2D->plotComplex2DMapWithSort(measure,PLOT2D_COMPLEX2D_AMPLITUDE);
+    preparePlotOut();
 }
 
 void MainWindow::ReadSANS1(tComplex2D *data, QString filename){
@@ -427,6 +437,7 @@ void MainWindow::on_actionOpen_SANS_1_data_triggered()
     ReadSANS1(&measure,filename);
     measure.reSort();
     plotInAmpl->plot2D->plotComplex2DMapWithSort(measure,PLOT2D_COMPLEX2D_AMPLITUDE);
+    preparePlotOut();
 }
 
 void MainWindow::on_actionStop_triggered()
@@ -520,30 +531,22 @@ void MainWindow::slot_spinBoxProbeChanged(double var){
     }
 
 
-    /*
-    switch(comboSelectProbe->currentIndex()){
-    case PROBE_FUNCTION_CIRCLE:
-        QCPItemEllipse *ellipse = new QCPItemEllipse(plotOut->plot2D);
-        ellipse->setPen(QPen(QColor("green"),1,Qt::SolidLine,Qt::SquareCap,Qt::BevelJoin));
-        ellipse->topLeft->setCoords(100,100);
-        ellipse->bottomRight->setCoords(2,2);
-
-        break;
-
-
-    case PROBE_FUNCTION_SQUARE:
-        QCPItemLine *line1 = new QCPItemLine(plotOut->plot2D);
-
-        //QCPItemLine *line1 = new QCPItemLine(plot);
-        line1->setPen(QPen(QColor("green"),1,Qt::SolidLine,Qt::SquareCap,Qt::BevelJoin));
-
-        break;
-
-    }
-    */
-
     plotOut->plot2D->repaint();
     plotOut->plot2D->update();
     plotOut->plot2D->replot();
     return;
+}
+
+void MainWindow::preparePlotOut(){
+    plotOut->plot2D->xAxis->setRange(0,measure.getSizeX());
+    plotOut->plot2D->yAxis->setRange(0,measure.getSizeY());
+    plotOut->plot2D->ColorMap->data()->clear();
+    plotOut->plot2D->clearGraphs();
+    plotOut->plot2D->replot();
+    slot_comboSelectedProbe(0.0);
+}
+
+void MainWindow::on_actionOptionsDialog_triggered()
+{
+    dialogOptions->show();
 }

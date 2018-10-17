@@ -38,7 +38,7 @@
      <string>&amp;Dialogs</string>
     </property>
     <addaction name="actionErrorsDialog"/>
-    <addaction name="actionOptions"/>
+    <addaction name="actionOptionsDialog"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuDialogs"/>
@@ -89,7 +89,7 @@
     <string>Errors</string>
    </property>
   </action>
-  <action name="actionOptions">
+  <action name="actionOptionsDialog">
    <property name="text">
     <string>Options</string>
    </property>
