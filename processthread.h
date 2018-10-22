@@ -46,6 +46,9 @@ public:
 
 private:
     s_data_process *dp;
+    QDateTime startTime;
+    QDateTime endTime;
+    int mstime;
     bool ready = true;
 
     tComplex2D error_reduction(tComplex2D *input, tComplex2D *space_constr, int n_itteration);
@@ -67,9 +70,9 @@ signals:
     void signal_showMessage(QString);
     void signal_setProgress(int);
 
-    void signal_plotResult(tComplex2D *);
+    void signal_plotResult(tComplex2D *, int);
     void signal_plotAmpl(tComplex2D *);
-    void signal_plotPhase(tComplex2D *);
+    void signal_plotPhase(tComplex2D *, int);
     void signal_plotErrorValue(double x,double y);
 
 };

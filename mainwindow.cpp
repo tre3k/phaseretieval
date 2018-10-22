@@ -11,6 +11,7 @@ MainWindow::MainWindow(QWidget *parent) :
     /* default options */
     Options->number_of_plots = 20;
     Options->image_format = IMAGE_FORMAT_JPG;
+    Options->save_directory = "./out/";
 
 
     QGridLayout *mainLayout = new QGridLayout();
@@ -26,6 +27,11 @@ MainWindow::MainWindow(QWidget *parent) :
     plotInPhase = new tPlot2DCase();
     plotOutAmpl = new tPlot2DCase();
     plotOutPhase = new tPlot2DCase();
+
+    plotInAmpl->checkBoxLog->setChecked(true);
+    plotInAmpl->slot_log(true);
+    plotOutAmpl->checkBoxLog->setChecked(true);
+    plotOutAmpl->slot_log(true);
 
     plotIn->setMinimumSize(20,20);
     plotInAmpl->setMinimumSize(20,20);
@@ -152,12 +158,12 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(process,SIGNAL(signal_setProgress(int)),
             this,SLOT(slot_setProgress(int)));
 
-    connect(process,SIGNAL(signal_plotResult(tComplex2D *)),
-            this,SLOT(slot_plotResult(tComplex2D *)));
+    connect(process,SIGNAL(signal_plotResult(tComplex2D *, int)),
+            this,SLOT(slot_plotResult(tComplex2D *, int)));
     connect(process,SIGNAL(signal_plotAmpl(tComplex2D *)),
             this,SLOT(slot_plotOutAmpl(tComplex2D *)));
-    connect(process,SIGNAL(signal_plotPhase(tComplex2D *)),
-            this,SLOT(slot_plotOutPhase(tComplex2D *)));
+    connect(process,SIGNAL(signal_plotPhase(tComplex2D *, int)),
+            this,SLOT(slot_plotOutPhase(tComplex2D *, int)));
 
     connect(comboSelectMethod,SIGNAL(activated(int)),
             this,SLOT(slot_comboSelectedMethod(int)));
@@ -178,6 +184,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(process,SIGNAL(signal_plotErrorValue(double,double)),
             dialogErrors,SLOT(slot_addValue(double,double)));
+
+    connect(dialogOptions,SIGNAL(signal_sendOptionsData(s_options *)),
+            this,SLOT(slot_recvOptionsData(s_options *)));
 
 }
 
@@ -264,6 +273,20 @@ void MainWindow::on_actionOpen_image_triggered()
         }
     }
 
+    switch (Options->image_format) {
+    case IMAGE_FORMAT_JPG:
+        plotIn->plot2D->saveJpg(Options->save_directory+"/Original.jpg");
+        plotInAmpl->plot2D->saveJpg(Options->save_directory+"/Original_spectra.jpg");
+        plotInPhase->plot2D->saveJpg(Options->save_directory+"/Original_phase.jpg");
+        break;
+    case IMAGE_FORMAT_PNG:
+        plotIn->plot2D->savePng(Options->save_directory+"/Original.png");
+        plotInAmpl->plot2D->savePng(Options->save_directory+"/Original_spectra.png");
+        plotInPhase->plot2D->savePng(Options->save_directory+"/Original_phase.png");
+        break;
+    }
+
+
     preparePlotOut();
 }
 
@@ -312,9 +335,19 @@ void MainWindow::slot_setProgress(int value){
 }
 
 
-void MainWindow::slot_plotResult(tComplex2D *data){
+void MainWindow::slot_plotResult(tComplex2D *data, int i){
     plotOut->plot2D->plotComplex2DMap(*data,PLOT2D_COMPLEX2D_REAL);
     counter ++;
+
+
+    switch(Options->image_format){
+    case IMAGE_FORMAT_JPG:
+        plotOut->plot2D->saveJpg(Options->save_directory+"/out_"+QString::number(i+1)+".jpg");
+        break;
+    case IMAGE_FORMAT_PNG:
+        plotOut->plot2D->savePng(Options->save_directory+"/out_"+QString::number(i+1)+".png");
+        break;
+    }
 
     //plotOut->plot2D->saveBmp("/tmp/out_"+QString::number(counter)+".bmp");
 
@@ -326,8 +359,18 @@ void MainWindow::slot_plotOutAmpl(tComplex2D *data){
     return;
 }
 
-void MainWindow::slot_plotOutPhase(tComplex2D *data){
+void MainWindow::slot_plotOutPhase(tComplex2D *data, int i){
     plotOutPhase->plot2D->plotComplex2DMapWithSort(*data,PLOT2D_COMPLEX2D_PHASE);
+
+    switch(Options->image_format){
+    case IMAGE_FORMAT_JPG:
+        plotOutPhase->plot2D->saveJpg(Options->save_directory+"/out_phase_"+QString::number(i+1)+".jpg");
+        break;
+    case IMAGE_FORMAT_PNG:
+        plotOutPhase->plot2D->savePng(Options->save_directory+"/out_phase_"+QString::number(i+1)+".png");
+        break;
+    }
+
     return;
 }
 
@@ -549,4 +592,9 @@ void MainWindow::preparePlotOut(){
 void MainWindow::on_actionOptionsDialog_triggered()
 {
     dialogOptions->show();
+}
+
+void MainWindow::slot_recvOptionsData(s_options *sopt){
+    *Options = *sopt;
+    qDebug() << Options->save_directory;
 }

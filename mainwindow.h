@@ -91,13 +91,16 @@ public slots:
     void slot_showMessage(QString);
     void slot_setProgress(int);
 
-    void slot_plotResult(tComplex2D *);
+    void slot_plotResult(tComplex2D *, int);
     void slot_plotOutAmpl(tComplex2D *);
-    void slot_plotOutPhase(tComplex2D *);
+    void slot_plotOutPhase(tComplex2D *, int);
 
     void slot_comboSelectedMethod(int);
     void slot_comboSelectedProbe(int);
     void slot_spinBoxProbeChanged(double);
+
+    void slot_recvOptionsData(s_options *);
+
 
 signals:
     void signal_send_data_process(s_data_process *);

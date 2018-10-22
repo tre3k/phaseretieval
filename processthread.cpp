@@ -47,6 +47,7 @@ tComplex2D ProcessThread::error_reduction(tComplex2D *F,tComplex2D *P,int n_itte
 
     for(int k=0;k<n_itteration;k++){
         // direct FFT
+        startTime = QDateTime::currentDateTime();
         fft.dfft2d(&x,&X);
 
         if((k+1)%dp->n_of_plots==0) plotGraphs(&x,&X,F,k);
@@ -83,14 +84,18 @@ tComplex2D ProcessThread::error_reduction(tComplex2D *F,tComplex2D *P,int n_itte
             }
         }
 
+        endTime = QDateTime::currentDateTime();
+        mstime = startTime.time().msecsTo(endTime.time());
+
         emit signal_setProgress((k+1)*100/n_itteration);
-        emit signal_showMessage("Itteration: "+QString::number(k+1));
+        emit signal_showMessage("Itteration: "+QString::number(k+1)+" Remaining time: "
+                                +QString::number(1.0*mstime*(n_itteration-k)/1000.0)+" s.");
         ready = false;
     }
 
-    emit signal_plotResult(&x);
+    emit signal_plotResult(&x,n_itteration-1);
     emit signal_plotAmpl(&X);
-    emit signal_plotPhase(&X);
+    emit signal_plotPhase(&X,n_itteration-1);
 
     this->sleep(1);
 
@@ -113,6 +118,7 @@ tComplex2D ProcessThread::hybrid_input_output(tComplex2D *F,tComplex2D *P,double
     x.cleanImgn();
 
     for(int k=0;k<n_itteration;k++){
+        startTime = QDateTime::currentDateTime();
         // direct FFT
         fft.dfft2d(&x,&X);
 
@@ -150,14 +156,19 @@ tComplex2D ProcessThread::hybrid_input_output(tComplex2D *F,tComplex2D *P,double
             }
         }
 
+
+        endTime = QDateTime::currentDateTime();
+        mstime = startTime.time().msecsTo(endTime.time());
+
         emit signal_setProgress((k+1)*100/n_itteration);
-        emit signal_showMessage("Itteration: "+QString::number(k+1));
+        emit signal_showMessage("Itteration: "+QString::number(k+1)+" Remaining time: "
+                                +QString::number(1.0*mstime*(n_itteration-k)/1000.0)+" s.");
     }
 
 
-    emit signal_plotResult(&x);
+    emit signal_plotResult(&x,n_itteration-1);
     emit signal_plotAmpl(&X);
-    emit signal_plotPhase(&X);
+    emit signal_plotPhase(&X,n_itteration-1);
 
     this->sleep(1);
 
@@ -236,9 +247,9 @@ void ProcessThread::slot_ready(){
 }
 
 void ProcessThread::plotGraphs(tComplex2D *x,tComplex2D *X, tComplex2D *F, int i){
-    emit signal_plotResult(x);
+    emit signal_plotResult(x, i);
     emit signal_plotAmpl(X);
-    emit signal_plotPhase(X);
+    emit signal_plotPhase(X,i);
     emit signal_plotErrorValue(i,findError(F,X));
     this->msleep(100);
     while(!ready);

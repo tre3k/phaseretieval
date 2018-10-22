@@ -8,9 +8,11 @@ PlotDialog::PlotDialog(QWidget *parent) : QDialog(parent){
     mainLayout->setMenuBar(menuBar);
 
     menuFile = new QMenu("&File");
-    actionSave = new QAction("&Save plot image");
+    actionSaveImage = new QAction("&Save plot image");
+    actionSaveData = new QAction("Save data");
     actionExit = new QAction("E&xit");
-    menuFile->addAction(actionSave);
+    menuFile->addAction(actionSaveImage);
+    menuFile->addAction(actionSaveData);
     menuFile->addSeparator();
     menuFile->addAction(actionExit);
 
@@ -21,6 +23,8 @@ PlotDialog::PlotDialog(QWidget *parent) : QDialog(parent){
     mainLayout->addWidget(plot);
     this->setMinimumSize(300,200);
 
+    connect(actionSaveData,SIGNAL(triggered()),
+            this,SLOT(slot_actionSaveData()));
     connect(actionExit,SIGNAL(triggered()),
             this,SLOT(slot_actionExit()));
 
@@ -45,6 +49,23 @@ void PlotDialog::slot_addValue(double x,double y){
 
 void PlotDialog::setGraph(int lgraph){
     graph = lgraph;
+}
+
+void PlotDialog::slot_actionSaveData(){
+    QString filename = QFileDialog::getSaveFileName(NULL,"Save data","","*.txt");
+    if(filename=="") return;
+
+    QFile f(filename);
+    QTextStream stream(&f);
+
+    f.open(QIODevice::WriteOnly);
+
+    for(int i=0;i<plot->graph(0)->dataCount();i++){
+        stream << plot->graph(0)->dataMainKey(i) << "\t" << plot->graph(0)->dataMainValue(i) << "\n";
+    }
+
+    f.close();
+    return;
 }
 
 void PlotDialog::slot_actionExit(){

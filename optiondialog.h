@@ -3,6 +3,13 @@
 
 #include <QDialog>
 #include <QWidget>
+#include <QLayout>
+#include <QFormLayout>
+#include <QLineEdit>
+#include <QButtonGroup>
+#include <QPushButton>
+#include <QLabel>
+#include <QFileDialog>
 
 enum{
     IMAGE_FORMAT_PNG,
@@ -20,6 +27,22 @@ class OptionDialog : public QDialog{
     Q_OBJECT
 public:
     explicit OptionDialog(QWidget *parent = 0);
+private:
+    QLineEdit *textPathForSaveImg;
+    QPushButton *buttonPathForSaveImg;
+
+    QPushButton *buttonOk;
+    QPushButton *buttonClose;
+
+    s_options *sOptions;
+
+private slots:
+    void slot_pushCloseButton();
+    void slot_pushOkButton();
+    void slot_pushOpenButton();
+
+signals:
+    void signal_sendOptionsData(s_options *);
 
 };
 

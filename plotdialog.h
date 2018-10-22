@@ -23,13 +23,15 @@ private:
     QMenuBar *menuBar;
 
     QMenu *menuFile;
-    QAction *actionSave;
+    QAction *actionSaveImage;
+    QAction *actionSaveData;
     QAction *actionExit;
 
 private slots:
     void slot_SetAxiesLabel(QString labelX,QString LabelY);
     void slot_addValue(double x,double y);
 
+    void slot_actionSaveData();
     void slot_actionExit();
 
 };
